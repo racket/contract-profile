@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/list racket/match racket/set racket/format
-         racket/contract racket/contract/private/blame
+         racket/contract racket/contract/combinator
          profile/sampler profile/utils profile/analyzer
          "dot.rkt" "utils.rkt" "boundary-view.rkt")
 
@@ -41,8 +41,7 @@
   (define regular-profile (analyze-samples samples*))
   ;; all blames must be complete, otherwise we get bogus profiles
   (for ([b (in-list all-blames)])
-    (unless (and (blame-positive b)
-                 (blame-negative b))
+    (unless (blame-missing-party? b)
       (error (string-append "contract-profile: incomplete blame:\n"
                             (format-blame b)))))
   (contract-profile
