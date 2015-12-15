@@ -41,7 +41,7 @@
   (define regular-profile (analyze-samples samples*))
   ;; all blames must be complete, otherwise we get bogus profiles
   (for ([b (in-list all-blames)])
-    (unless (blame-missing-party? b)
+    (unless (not (blame-missing-party? b))
       (error (string-append "contract-profile: incomplete blame:\n"
                             (format-blame b)))))
   (contract-profile
