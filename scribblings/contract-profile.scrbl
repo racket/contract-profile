@@ -99,8 +99,11 @@ output.
               ([n (in-list numbers)])
       (+ total n)))
 
-  (contract-profile (sum* (range (expt 10 6))))
-  (displayln (file->string "tmp-contract-profile-cost-breakdown.txt"))
+  (contract-profile #:cost-breakdown-file 'stdout
+                    #:module-graph-file #f
+                    #:boundary-view-file #f
+                    #:boundary-view-key-file #f
+                    (sum* (range (expt 10 6))))
 ]
 
 The example shows that a large proportion of the call to @racket[sum*]
@@ -120,9 +123,12 @@ samples a @racket[(listof integer?)] contract than the underlying
               ([numbers (in-vector vec-of-numbers)])
       (+ total (sum* numbers))))
 
-  (contract-profile (vector-max* (make-vector 10 (range (expt 10 6)))))
-  (displayln (file->string "tmp-contract-profile-cost-breakdown.txt"))
+  (contract-profile #:cost-breakdown-file 'stdout
+                    #:module-graph-file #f
+                    #:boundary-view-file #f
+                    #:boundary-view-key-file #f
+                    (vector-max* (make-vector 10 (range (expt 10 6)))))
 ]
 
-Also note that old @racket["tmp-"] files are overwritten by future calls to
-the contract profiler.
+Also note that old results files are overwritten by future calls to the
+contract profiler.
