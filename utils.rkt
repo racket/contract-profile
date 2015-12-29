@@ -26,13 +26,28 @@
 ;; for testing. don't generate output files
 (define dry-run? (make-parameter #f))
 
+(define (decide-output-file file default)
+  (cond [(or (dry-run?) (not file))
+         #f]
+        [(eq? file 'stdout)
+         'stdout]
+        [(not-there? file)
+         (string-append output-file-prefix default)]
+        [else
+         file]))
+
+(define not-there (gensym))
+(define (not-there? x) (eq? x not-there))
 (define-syntax-rule (with-output-to-report-file file body ...)
-  (if (dry-run?)
-      (parameterize ([current-output-port (open-output-nowhere)])
-        body ...)
-      (with-output-to-file file
-        #:exists 'replace
-        (lambda () body ...))))
+  (cond [(or (dry-run?) (not file)) ; (eq? file #f) => don't output that
+         (parameterize ([current-output-port (open-output-nowhere)])
+           body ...)]
+        [(eq? file 'stdout)
+         body ...]
+        [else
+         (with-output-to-file file
+           #:exists 'replace
+           (lambda () body ...))]))
 
 ;; for debugging
 (define (format-blame b)

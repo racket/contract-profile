@@ -9,21 +9,30 @@
 
 This module provides experimental support for contract profiling.
 
-@defform[(contract-profile body ...)]{
+@defform[(contract-profile option ... body ...)
+         #:grammar [(option (code:line #:cost-breakdown-file cost-breakdown-file)
+                            (code:line #:module-graph-file module-graph-file)
+                            (code:line #:boundary-view-file boundary-view-file)
+                            (code:line #:boundary-view-key-file boundary-view-key-file))]]{
 
 Produces several reports about the performance costs related to contract
 checking in @racket[body]. Each of these reports is printed to a separate
-file.
+file. Each destination file can be controlled using the corresponding optional
+keyword argument. An argument of @racket[#f] disables that portion of the
+output.
 
 @itemlist[
 @item{
-  @emph{Cost Breakdown} (in @tt{tmp-contract-profile-cost-breakdown.txt}):
+  @emph{Cost Breakdown} (defaults to @tt{tmp-contract-profile-cost-breakdown.txt}):
   Displays the proportion of @racket[body]'s running time that was spent
   checking contracts and breaks that time down by contract, then by contracted
   function and finally by caller for each contracted function.
+
+  Passing @racket['stdout] as the value for @racket[cost-breakdown-file] will
+  redirect this portion of the output to standard output.
 }
 @item{
-  @emph{Module Graph View} (in @tt{tmp-contract-profile-module-graph.dot.pdf}):
+  @emph{Module Graph View} (defaults to @tt{tmp-contract-profile-module-graph.dot.pdf}):
   Shows a graph of modules (nodes) and the contract boundaries (edges) between
   them that were crossed while running @racket[body].
 
@@ -33,11 +42,12 @@ file.
   are displayed in red.
 
   These graphs are rendered using Graphviz. The Graphviz source is available in
-  @tt{tmp-contract-profile-module-graph.dot}. The rendered version of the graph
-  is only available if the contract profiler can locate a Graphviz install.
+  (by default) @tt{tmp-contract-profile-module-graph.dot}. The rendered version
+  of the graph is only available if the contract profiler can locate a Graphviz
+  install.
 }
 @item{
-  @emph{Boundary View} (in @tt{tmp-contract-profile-boundary-graph.dot.pdf}):
+  @emph{Boundary View} (defaults to @tt{tmp-contract-profile-boundary-graph.dot.pdf}):
   Shows a detailed view of how contract checking costs are spread out across
   contracted functions, broken down by contract boundary.
 
@@ -58,11 +68,12 @@ file.
   participates in, as well as the cost of checking the contracts associated
   with each boundary. For space reasons, full contracts are not displayed on
   the graph and are instead numbered. The mapping from numbers to contracts is
-  found in @tt{tmp-contract-profile-contract-key.txt}.
+  found in (by default) @tt{tmp-contract-profile-contract-key.txt}.
 
   These graphs are rendered using Graphviz. The Graphviz source is available in
-  @tt{tmp-contract-profile-boundary-graph.dot}. The rendered version of the graph
-  is only available if the contract profiler can locate a Graphviz install.
+  (by default) @tt{tmp-contract-profile-boundary-graph.dot}. The rendered
+  version of the graph is only available if the contract profiler can locate a
+  Graphviz install.
 }
 ]
 

@@ -1,15 +1,24 @@
 #lang racket/base
 
-(require contract-profile
+(require racket/port
+         contract-profile
          (only-in contract-profile/utils dry-run? make-shortener))
 
 (module+ test
   (require rackunit)
 
-  (dry-run? #t) ; don't output to files
-
   ;; reported by Greg Hendershott
-  (check-true (contract-profile #t))
+  (define res
+    (with-output-to-string
+      (lambda ()
+        (check-true (contract-profile #:cost-breakdown-file 'stdout
+                                      #:module-graph-file #f
+                                      #:boundary-view-file #f
+                                      #:boundary-view-key-file #f
+                                      #t)))))
+  (check-true (regexp-match? "^Running time is 0% contracts" res))
+
+  (dry-run? #t) ; don't output to files
 
   (require math)
   (let ()

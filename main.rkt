@@ -3,7 +3,8 @@
 (require racket/list racket/match racket/set racket/format
          racket/contract racket/contract/combinator
          profile/sampler profile/utils profile/analyzer
-         "dot.rkt" "utils.rkt" "boundary-view.rkt")
+         "dot.rkt" "utils.rkt" "boundary-view.rkt"
+         (for-syntax racket/base syntax/parse "utils.rkt"))
 
 ;; (listof (U blame? #f)) profile-samples -> contract-profile struct
 (define (correlate-contract-samples contract-samples* samples*)
@@ -48,20 +49,24 @@
    total-time live-contract-samples all-blames regular-profile))
 
 
-(define (analyze-contract-samples contract-samples samples*)
+(define (analyze-contract-samples
+         contract-samples
+         samples*
+         #:cost-breakdown-file [cost-breakdown-file not-there]
+         #:module-graph-file [module-graph-file not-there]
+         #:boundary-view-file [boundary-view-file not-there]
+         #:boundary-view-key-file [boundary-view-key-file not-there])
   (define correlated (correlate-contract-samples contract-samples samples*))
-  (with-output-to-report-file cost-breakdown-file
-                              (print-breakdown correlated))
-  (module-graph-view correlated)
-  (boundary-view correlated))
+  (with-output-to-report-file
+   (decide-output-file cost-breakdown-file "cost-breakdown.txt")
+   (print-breakdown correlated))
+  (module-graph-view correlated module-graph-file)
+  (boundary-view correlated boundary-view-file boundary-view-key-file))
 
 
 ;;---------------------------------------------------------------------------
 ;; Break down contract checking time by contract, then by callee and by chain
 ;; of callers.
-
-(define cost-breakdown-file
-  (string-append output-file-prefix "cost-breakdown.txt"))
 
 (define (print-breakdown correlated)
   (match-define (contract-profile
@@ -141,10 +146,7 @@
 ;; boundary.
 ;; Typed modules are in green, untyped modules are in red.
 
-(define module-graph-dot-file
-  (string-append output-file-prefix "module-graph.dot"))
-
-(define (module-graph-view correlated)
+(define (module-graph-view correlated module-graph-file)
   (match-define (contract-profile
                  total-time live-contract-samples all-blames regular-profile)
     correlated)
@@ -196,6 +198,8 @@
       (values n typed?)))
 
   ;; graphviz output
+  (define module-graph-dot-file
+    (decide-output-file module-graph-file "module-graph.dot"))
   (with-output-to-report-file
    module-graph-dot-file
    (printf "digraph {\n")
@@ -214,8 +218,9 @@
              (hash-ref nodes->names pos)
              (samples-time v)))
    (printf "}\n"))
-  ;; render, if graphviz is installed
-  (render-dot module-graph-dot-file))
+  ;; render, if graphviz is installed, and we're not suppressing output
+  (when module-graph-dot-file
+    (render-dot module-graph-dot-file)))
 
 
 ;;---------------------------------------------------------------------------
@@ -225,19 +230,51 @@
          contract-profile-thunk
          analyze-contract-samples) ; for feature-specific profiler
 
-;; TODO have kw args for profiler, etc.
-;; TODO have kw args for output files
-(define-syntax-rule (contract-profile/user body ...)
-  (let ([sampler (create-sampler (current-thread) 0.005 (current-custodian)
-                                 (list contract-continuation-mark-key))])
-    (begin0 (begin body ...)
-      (let ()
-        (sampler 'stop)
-        (define samples (sampler 'get-snapshots))
-        (define contract-samples
-          (for/list ([s (in-list (sampler 'get-custom-snapshots))])
-            (and (not (empty? s)) (vector-ref (car s) 0))))
-        (analyze-contract-samples contract-samples samples)))))
+(begin-for-syntax
+ (define not-there/syntax #'dummy)
+ (define (not-there/syntax? x) (eq? x not-there/syntax)))
 
+;; TODO have kw args for profiler, etc.
+(define-syntax (contract-profile/user stx)
+  (syntax-parse stx
+    [(_ (~or
+         ;; these arguments are: (or/c filename 'stdout #f) ; #f = disabled
+         ;; absent means default filename
+         (~optional (~seq #:cost-breakdown-file cost-breakdown-file:expr)
+                    #:defaults ([cost-breakdown-file not-there/syntax]))
+         (~optional (~seq #:module-graph-file module-graph-file:expr)
+                    #:defaults ([module-graph-file not-there/syntax]))
+         (~optional (~seq #:boundary-view-file boundary-view-file:expr)
+                    #:defaults ([boundary-view-file not-there/syntax]))
+         (~optional (~seq #:boundary-view-key-file boundary-view-key-file:expr)
+                    #:defaults ([boundary-view-key-file not-there/syntax])))
+        ...
+        body:expr ...)
+     #`(let ([sampler (create-sampler (current-thread) 0.005 (current-custodian)
+                                      (list contract-continuation-mark-key))])
+         (begin0 (begin body ...)
+           (let ()
+             (sampler 'stop)
+             (define samples (sampler 'get-snapshots))
+             (define contract-samples
+               (for/list ([s (in-list (sampler 'get-custom-snapshots))])
+                 (and (not (empty? s)) (vector-ref (car s) 0))))
+             (analyze-contract-samples
+              contract-samples
+              samples
+              #,@(if (not-there/syntax? #'cost-breakdown-file)
+                     '()
+                     #'(#:cost-breakdown-file cost-breakdown-file))
+              #,@(if (not-there/syntax? #'module-graph-file)
+                     '()
+                     #'(#:module-graph-file module-graph-file))
+              #,@(if (not-there/syntax? #'boundary-view-file)
+                     '()
+                     #'(#:boundary-view-file boundary-view-file))
+              #,@(if (not-there/syntax? #'boundary-view-key-file)
+                     '()
+                     #'(#:boundary-view-key-file boundary-view-key-file))))))]))
+
+;; TODO this should have keyword args too. restructure the whole entry point
 (define (contract-profile-thunk f)
   (contract-profile/user (f)))

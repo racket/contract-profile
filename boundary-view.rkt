@@ -39,12 +39,7 @@
 ;; draw borders to group functions from the same module
 (define show-module-clustering? #t)
 
-(define boundary-graph-dot-file
-  (string-append output-file-prefix "boundary-graph.dot"))
-(define contract-key-file
-  (string-append output-file-prefix "contract-key.txt"))
-
-(define (boundary-view correlated)
+(define (boundary-view correlated boundary-view-file boundary-view-key-file)
   (match-define (contract-profile
                  total-time live-contract-samples all-blames regular-profile)
     correlated)
@@ -110,16 +105,20 @@
                         s)))
       (boundary contracted-function boundary-edges b time-spent)))
 
+  (define boundary-graph-dot-file
+    (decide-output-file boundary-view-file "boundary-graph.dot"))
   (with-output-to-report-file
    boundary-graph-dot-file
    (render all-boundaries all-blames contracts->keys))
-  (render-dot boundary-graph-dot-file)
+  (when boundary-graph-dot-file
+    (render-dot boundary-graph-dot-file))
   ;; print contract key
   ;; TODO find a way to add to pdf
   ;; TODO also to add to pdf: show proportion of time spent in contracts
   ;;  otherwise we have no idea if we're looking at a case where contracts are
   ;;  bottlenecks or not
-  (with-output-to-report-file contract-key-file
+  (with-output-to-report-file (decide-output-file boundary-view-key-file
+                                                  "contract-key.txt")
                               (for ([contract+key (in-list contracts->keys)])
                                 (printf "[~a] = ~a\n"
                                         (cdr contract+key)
