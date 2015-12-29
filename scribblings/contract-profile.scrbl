@@ -1,7 +1,14 @@
 #lang scribble/doc
 
 @(require scribble/manual
+          scribble/eval
           (for-label racket/base racket/contract))
+@(define contract-profile-eval
+  (make-base-eval
+    '(begin (require contract-profile
+                     racket/contract
+                     (only-in racket/file file->string)
+                     racket/list))))
 
 @title[#:tag "contract-profiling"]{Contract Profiling}
 
@@ -72,3 +79,39 @@ file.
   Like @racket[contract-profile], but as a function which takes a thunk to
   profile as argument.
 }
+
+
+@examples[#:eval contract-profile-eval
+  (define/contract (sum* numbers)
+    (-> (listof integer?) integer?)
+    (for/fold ([total 0])
+              ([n (in-list numbers)])
+      (+ total n)))
+
+  (contract-profile (sum* (range (expt 10 6))))
+  (displayln (file->string "tmp-contract-profile-cost-breakdown.txt"))
+]
+
+The example shows that a large proportion of the call to @racket[sum*]
+with a list of 1 million integers is spent validating the input list.
+
+
+Note that the contract profiler is unlikely to detect fast-running contracts
+that trigger other, slower contract checks.
+In the following example, there is a higher chance that the profiler
+samples a @racket[(listof integer?)] contract than the underlying
+@racket[(vectorof list?)] contract.
+
+@examples[#:eval contract-profile-eval
+  (define/contract (vector-max* vec-of-numbers)
+    (-> (vectorof list?) integer?)
+    (for/fold ([total 0])
+              ([numbers (in-vector vec-of-numbers)])
+      (+ total (sum* numbers))))
+
+  (contract-profile (vector-max* (make-vector 10 (range (expt 10 6)))))
+  (displayln (file->string "tmp-contract-profile-cost-breakdown.txt"))
+]
+
+Also note that old @racket["tmp-"] files are overwritten by future calls to
+the contract profiler.
