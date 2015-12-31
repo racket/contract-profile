@@ -94,7 +94,7 @@
   (for ([c (in-list samples-by-contract)])
     (define representative (caar c))
     (print-contract/loc representative)
-    (printf "  ~a ms\n\n" (samples-time c)))
+    (printf "  ~a ms\n\n" (~r (samples-time c) #:precision 2)))
 
   (displayln "\nBY CALLEE\n")
   (for ([g (in-list samples-by-contract)])
@@ -107,7 +107,7 @@
               > #:key length)])
       (printf "  ~a\n  ~a ms\n"
               (blame-value (caar x))
-              (samples-time x)))
+              (~r (samples-time x) #:precision 2)))
     (newline))
 
   (define samples-by-contract-by-caller
@@ -123,7 +123,7 @@
     (print-contract/loc (car representative))
     (for ([frame (in-list (cddr representative))])
       (printf "  ~a @ ~a\n" (car frame) (cdr frame)))
-    (printf "  ~a ms\n" (samples-time c))
+    (printf "  ~a ms\n" (~r (samples-time c) #:precision 2))
     (newline)))
 
 ;; Unrolls the stack until it hits a function on the negative side of the
@@ -216,7 +216,7 @@
      (printf "~a -> ~a[label=\"~ams\"]\n"
              (hash-ref nodes->names neg)
              (hash-ref nodes->names pos)
-             (samples-time v)))
+             (~r (samples-time v) #:precision 2)))
    (printf "}\n"))
   ;; render, if graphviz is installed, and we're not suppressing output
   (when module-graph-dot-file
