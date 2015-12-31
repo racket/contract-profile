@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/list racket/match racket/contract racket/string
-         racket/set racket/dict
+         racket/set racket/dict racket/format
          profile/structs profile/utils
          "utils.rkt" "dot.rkt")
 
@@ -177,7 +177,7 @@
             ;; show the contract key
             (dict-ref contracts->keys (blame-contract blame))
             (party->shortened-path (blame-negative blame))
-            (boundary-time b)))
+            (~r (boundary-time b) #:precision 2)))
 
   (printf "digraph Profile {\n")
   (printf "splines=\"true\"\n") ; polyline kinda works too, maybe
