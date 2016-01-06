@@ -254,7 +254,6 @@
               #:boundary-view-file boundary-view-file
               #:boundary-view-key-file boundary-view-key-file))))]))
 
-;; TODO this should have keyword args too. restructure the whole entry point
 (define (contract-profile-thunk f
                                 #:module-graph-file [module-graph-file #f]
                                 #:boundary-view-file [boundary-view-file #f]
