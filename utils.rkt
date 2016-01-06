@@ -20,8 +20,6 @@
   (for/sum ([s (in-list samples)])
     (cadr s)))
 
-(define output-file-prefix "tmp-contract-profile-")
-
 
 ;; for testing. don't generate output files
 (define dry-run? (make-parameter #f))
@@ -31,19 +29,13 @@
          #f]
         [(eq? file 'stdout)
          'stdout]
-        [(not-there? file)
-         (string-append output-file-prefix default)]
         [else
          file]))
 
-(define not-there (gensym))
-(define (not-there? x) (eq? x not-there))
 (define-syntax-rule (with-output-to-report-file file body ...)
   (cond [(or (dry-run?) (not file)) ; (eq? file #f) => don't output that
          (parameterize ([current-output-port (open-output-nowhere)])
            body ...)]
-        [(eq? file 'stdout)
-         body ...]
         [else
          (with-output-to-file file
            #:exists 'replace

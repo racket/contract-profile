@@ -21,23 +21,20 @@ This module provides experimental support for contract profiling.
                             (code:line #:boundary-view-file boundary-view-file)
                             (code:line #:boundary-view-key-file boundary-view-key-file))]]{
 
-Produces several reports about the performance costs related to contract
-checking in @racket[body]. Some of these reports are printed to files.
-Each destination file can be controlled using the corresponding optional
-keyword argument. An argument of @racket[#f] disables that portion of the
-output.
+Produces a report of the performance costs related to contract checking in
+@racket[body] on standard output.
+
+Specifically, displays the proportion of @racket[body]'s running time that was
+spent checking contracts and breaks that time down by contract, then by
+contracted function and finally by caller for each contracted function.
+
+Additional visualizations are available on-demand, controlled by keyword
+arguments which specify their destination files. An argument of @racket[#f]
+(the default) disables that visualization.
 
 @itemlist[
 @item{
-  @emph{Cost Breakdown}:
-  Displays the proportion of @racket[body]'s running time that was spent
-  checking contracts and breaks that time down by contract, then by contracted
-  function and finally by caller for each contracted function.
-
-  This report is printed on standard output.
-}
-@item{
-  @emph{Module Graph View} (defaults to @tt{tmp-contract-profile-module-graph.dot.pdf}):
+  @emph{Module Graph View}:
   Shows a graph of modules (nodes) and the contract boundaries (edges) between
   them that were crossed while running @racket[body].
 
@@ -46,13 +43,11 @@ output.
   Modules written in Typed Racket are displayed in green and untyped modules
   are displayed in red.
 
-  These graphs are rendered using Graphviz. The Graphviz source is available in
-  (by default) @tt{tmp-contract-profile-module-graph.dot}. The rendered version
-  of the graph is only available if the contract profiler can locate a Graphviz
-  install.
+  These graphs are rendered using Graphviz. The rendered version of the graph
+  is only available if the contract profiler can locate a Graphviz install.
 }
 @item{
-  @emph{Boundary View} (defaults to @tt{tmp-contract-profile-boundary-graph.dot.pdf}):
+  @emph{Boundary View}:
   Shows a detailed view of how contract checking costs are spread out across
   contracted functions, broken down by contract boundary.
 
@@ -73,12 +68,10 @@ output.
   participates in, as well as the cost of checking the contracts associated
   with each boundary. For space reasons, full contracts are not displayed on
   the graph and are instead numbered. The mapping from numbers to contracts is
-  found in (by default) @tt{tmp-contract-profile-contract-key.txt}.
+  found in @racket[boundary-view-key-file].
 
-  These graphs are rendered using Graphviz. The Graphviz source is available in
-  (by default) @tt{tmp-contract-profile-boundary-graph.dot}. The rendered
-  version of the graph is only available if the contract profiler can locate a
-  Graphviz install.
+  These graphs are rendered using Graphviz. The rendered version of the graph
+  is only available if the contract profiler can locate a Graphviz install.
 }
 ]
 
@@ -101,10 +94,7 @@ output.
               ([n (in-list numbers)])
       (+ total n)))
 
-  (contract-profile #:module-graph-file #f
-                    #:boundary-view-file #f
-                    #:boundary-view-key-file #f
-                    (sum* (range (expt 10 6))))
+  (contract-profile (sum* (range (expt 10 6))))
 ]
 
 The example shows that a large proportion of the call to @racket[sum*]
@@ -124,10 +114,7 @@ samples a @racket[(listof integer?)] contract than the underlying
               ([numbers (in-vector vec-of-numbers)])
       (+ total (sum* numbers))))
 
-  (contract-profile #:module-graph-file #f
-                    #:boundary-view-file #f
-                    #:boundary-view-key-file #f
-                    (vector-max* (make-vector 10 (range (expt 10 6)))))
+  (contract-profile (vector-max* (make-vector 10 (range (expt 10 6)))))
 ]
 
 Also note that old results files are overwritten by future calls to the

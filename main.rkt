@@ -52,9 +52,9 @@
 (define (analyze-contract-samples
          contract-samples
          samples*
-         #:module-graph-file [module-graph-file not-there]
-         #:boundary-view-file [boundary-view-file not-there]
-         #:boundary-view-key-file [boundary-view-key-file not-there])
+         #:module-graph-file [module-graph-file #f]
+         #:boundary-view-file [boundary-view-file #f]
+         #:boundary-view-key-file [boundary-view-key-file #f])
   (define correlated (correlate-contract-samples contract-samples samples*))
   (print-breakdown correlated)
   (module-graph-view correlated module-graph-file)
@@ -227,10 +227,6 @@
          contract-profile-thunk
          analyze-contract-samples) ; for feature-specific profiler
 
-(begin-for-syntax
- (define not-there/syntax #'dummy)
- (define (not-there/syntax? x) (eq? x not-there/syntax)))
-
 ;; TODO have kw args for profiler, etc.
 (define-syntax (contract-profile/user stx)
   (syntax-parse stx
@@ -238,11 +234,11 @@
          ;; these arguments are: (or/c filename 'stdout #f) ; #f = disabled
          ;; absent means default filename
          (~optional (~seq #:module-graph-file module-graph-file:expr)
-                    #:defaults ([module-graph-file not-there/syntax]))
+                    #:defaults ([module-graph-file #'#f]))
          (~optional (~seq #:boundary-view-file boundary-view-file:expr)
-                    #:defaults ([boundary-view-file not-there/syntax]))
+                    #:defaults ([boundary-view-file #'#f]))
          (~optional (~seq #:boundary-view-key-file boundary-view-key-file:expr)
-                    #:defaults ([boundary-view-key-file not-there/syntax])))
+                    #:defaults ([boundary-view-key-file #'#f])))
         ...
         body:expr ...)
      #`(let ([sampler (create-sampler (current-thread) 0.005 (current-custodian)
@@ -257,15 +253,9 @@
              (analyze-contract-samples
               contract-samples
               samples
-              #,@(if (not-there/syntax? #'module-graph-file)
-                     '()
-                     #'(#:module-graph-file module-graph-file))
-              #,@(if (not-there/syntax? #'boundary-view-file)
-                     '()
-                     #'(#:boundary-view-file boundary-view-file))
-              #,@(if (not-there/syntax? #'boundary-view-key-file)
-                     '()
-                     #'(#:boundary-view-key-file boundary-view-key-file))))))]))
+              #:module-graph-file module-graph-file
+              #:boundary-view-file boundary-view-file
+              #:boundary-view-key-file boundary-view-key-file))))]))
 
 ;; TODO this should have keyword args too. restructure the whole entry point
 (define (contract-profile-thunk f
