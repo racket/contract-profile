@@ -16,7 +16,20 @@
                                       #:boundary-view-file #f
                                       #:boundary-view-key-file #f
                                       #t)))))
-  (check-true (regexp-match? "^Running time is 0% contracts" res))
+  (check-regexp-match #rx"^Running time is 0% contracts" res)
+
+  ;; test options for `contract-profile-thunk`
+  (let ([res
+         (with-output-to-string
+           (lambda ()
+             (check-false
+               (contract-profile-thunk
+                 #:cost-breakdown-file 'stdout
+                 #:module-graph-file #f
+                 #:boundary-view-file #f
+                 #:boundary-view-key-file #f
+                 (lambda () (string? 4))))))])
+    (check-regexp-match #rx"0% contracts" res))
 
   (dry-run? #t) ; don't output to files
 

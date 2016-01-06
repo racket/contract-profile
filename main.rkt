@@ -276,5 +276,14 @@
                      #'(#:boundary-view-key-file boundary-view-key-file))))))]))
 
 ;; TODO this should have keyword args too. restructure the whole entry point
-(define (contract-profile-thunk f)
-  (contract-profile/user (f)))
+(define (contract-profile-thunk f
+                                #:cost-breakdown-file [cost-breakdown-file #f]
+                                #:module-graph-file [module-graph-file #f]
+                                #:boundary-view-file [boundary-view-file #f]
+                                #:boundary-view-key-file [boundary-view-key-file #f])
+  (contract-profile/user
+    #:cost-breakdown-file cost-breakdown-file
+    #:module-graph-file module-graph-file
+    #:boundary-view-file boundary-view-file
+    #:boundary-view-key-file boundary-view-key-file
+    (f)))
