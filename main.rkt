@@ -224,7 +224,7 @@
          contract-profile-thunk
          analyze-contract-samples) ; for feature-specific profiler
 
-;; TODO have kw args for profiler, etc.
+;; TODO have kw args for sampler, etc.
 (define-syntax (contract-profile/user stx)
   (syntax-parse stx
     [(_ (~or
