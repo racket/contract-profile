@@ -86,7 +86,12 @@ output.
 
 }
 
-@defproc[(contract-profile-thunk [thunk (-> any)]) any]{
+@defproc[(contract-profile-thunk
+          [thunk (-> any)]
+          [#:cost-breakdown-file cost-breakdown-file (or/c path-string 'stdout #f) #f]
+          [#:module-graph-file module-graph-file (or/c path-string #f) #f]
+          [#:boundary-view-file boundary-view-file (or/c path-string #f) #f]
+          [#:boundary-view-key-file boundary-view-key-file (or/c path-string #f) #f]) any]{
   Like @racket[contract-profile], but as a function which takes a thunk to
   profile as argument.
 }
