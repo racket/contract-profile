@@ -116,6 +116,3 @@ samples a @racket[(listof integer?)] contract than the underlying
 
   (contract-profile (vector-max* (make-vector 10 (range (expt 10 6)))))
 ]
-
-Also note that old results files are overwritten by future calls to the
-contract profiler.
