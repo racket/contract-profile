@@ -43,8 +43,8 @@ arguments which specify their destination files. An argument of @racket[#f]
   Modules written in Typed Racket are displayed in green and untyped modules
   are displayed in red.
 
-  These graphs are rendered using Graphviz. The rendered version of the graph
-  is only available if the contract profiler can locate a Graphviz install.
+  These graphs are rendered using Graphviz, and are only available if the
+  contract profiler can locate a Graphviz install.
 }
 @item{
   @emph{Boundary View}:
@@ -70,8 +70,8 @@ arguments which specify their destination files. An argument of @racket[#f]
   the graph and are instead numbered. The mapping from numbers to contracts is
   found in @racket[boundary-view-key-file].
 
-  These graphs are rendered using Graphviz. The rendered version of the graph
-  is only available if the contract profiler can locate a Graphviz install.
+  These graphs are rendered using Graphviz, and are only available if the
+  contract profiler can locate a Graphviz install.
 }
 ]
 

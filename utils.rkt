@@ -21,26 +21,6 @@
     (cadr s)))
 
 
-;; for testing. don't generate output files
-(define dry-run? (make-parameter #f))
-
-(define (decide-output-file file default)
-  (cond [(or (dry-run?) (not file))
-         #f]
-        [(eq? file 'stdout)
-         'stdout]
-        [else
-         file]))
-
-(define-syntax-rule (with-output-to-report-file file body ...)
-  (cond [(or (dry-run?) (not file)) ; (eq? file #f) => don't output that
-         (parameterize ([current-output-port (open-output-nowhere)])
-           body ...)]
-        [else
-         (with-output-to-file file
-           #:exists 'replace
-           (lambda () body ...))]))
-
 ;; for debugging
 (define (format-blame b)
   (format (string-append "#<blame positive=~a\n"

@@ -105,24 +105,22 @@
                         s)))
       (boundary contracted-function boundary-edges b time-spent)))
 
-  (define boundary-graph-dot-file
-    (decide-output-file boundary-view-file "boundary-graph.dot"))
-  (with-output-to-report-file
-   boundary-graph-dot-file
+  (with-output-to-dot
+   boundary-view-file
    (render all-boundaries all-blames contracts->keys))
-  (when boundary-graph-dot-file
-    (render-dot boundary-graph-dot-file))
   ;; print contract key
   ;; TODO find a way to add to pdf
   ;; TODO also to add to pdf: show proportion of time spent in contracts
   ;;  otherwise we have no idea if we're looking at a case where contracts are
   ;;  bottlenecks or not
-  (with-output-to-report-file (decide-output-file boundary-view-key-file
-                                                  "contract-key.txt")
-                              (for ([contract+key (in-list contracts->keys)])
-                                (printf "[~a] = ~a\n"
-                                        (cdr contract+key)
-                                        (car contract+key)))))
+  (when boundary-view-key-file
+    (with-output-to-file boundary-view-key-file
+      #:exists 'replace
+      (lambda ()
+        (for ([contract+key (in-list contracts->keys)])
+          (printf "[~a] = ~a\n"
+                  (cdr contract+key)
+                  (car contract+key)))))))
 
 
 ;; given a profile node, return all the boundaries centered there

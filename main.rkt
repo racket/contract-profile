@@ -57,8 +57,10 @@
          #:boundary-view-key-file [boundary-view-key-file #f])
   (define correlated (correlate-contract-samples contract-samples samples*))
   (print-breakdown correlated)
-  (module-graph-view correlated module-graph-file)
-  (boundary-view correlated boundary-view-file boundary-view-key-file))
+  (when module-graph-file
+    (module-graph-view correlated module-graph-file))
+  (when boundary-view-file
+    (boundary-view correlated boundary-view-file boundary-view-key-file)))
 
 
 ;;---------------------------------------------------------------------------
@@ -195,10 +197,8 @@
       (values n typed?)))
 
   ;; graphviz output
-  (define module-graph-dot-file
-    (decide-output-file module-graph-file "module-graph.dot"))
-  (with-output-to-report-file
-   module-graph-dot-file
+  (with-output-to-dot
+   module-graph-file
    (printf "digraph {\n")
    (printf "rankdir=LR\n")
    (define nodes->names (for/hash ([n nodes]) (values n (gensym))))
@@ -214,10 +214,7 @@
              (hash-ref nodes->names neg)
              (hash-ref nodes->names pos)
              (~r (samples-time v) #:precision 2)))
-   (printf "}\n"))
-  ;; render, if graphviz is installed, and we're not suppressing output
-  (when module-graph-dot-file
-    (render-dot module-graph-dot-file)))
+   (printf "}\n")))
 
 
 ;;---------------------------------------------------------------------------
