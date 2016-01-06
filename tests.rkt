@@ -11,8 +11,7 @@
   (define res
     (with-output-to-string
       (lambda ()
-        (check-true (contract-profile #:cost-breakdown-file 'stdout
-                                      #:module-graph-file #f
+        (check-true (contract-profile #:module-graph-file #f
                                       #:boundary-view-file #f
                                       #:boundary-view-key-file #f
                                       #t)))))
@@ -24,7 +23,6 @@
            (lambda ()
              (check-false
                (contract-profile-thunk
-                 #:cost-breakdown-file 'stdout
                  #:module-graph-file #f
                  #:boundary-view-file #f
                  #:boundary-view-key-file #f

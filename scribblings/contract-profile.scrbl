@@ -17,26 +17,24 @@
 This module provides experimental support for contract profiling.
 
 @defform[(contract-profile option ... body ...)
-         #:grammar [(option (code:line #:cost-breakdown-file cost-breakdown-file)
-                            (code:line #:module-graph-file module-graph-file)
+         #:grammar [(option (code:line #:module-graph-file module-graph-file)
                             (code:line #:boundary-view-file boundary-view-file)
                             (code:line #:boundary-view-key-file boundary-view-key-file))]]{
 
 Produces several reports about the performance costs related to contract
-checking in @racket[body]. Each of these reports is printed to a separate
-file. Each destination file can be controlled using the corresponding optional
+checking in @racket[body]. Some of these reports are printed to files.
+Each destination file can be controlled using the corresponding optional
 keyword argument. An argument of @racket[#f] disables that portion of the
 output.
 
 @itemlist[
 @item{
-  @emph{Cost Breakdown} (defaults to @tt{tmp-contract-profile-cost-breakdown.txt}):
+  @emph{Cost Breakdown}:
   Displays the proportion of @racket[body]'s running time that was spent
   checking contracts and breaks that time down by contract, then by contracted
   function and finally by caller for each contracted function.
 
-  Passing @racket['stdout] as the value for @racket[cost-breakdown-file] will
-  redirect this portion of the output to standard output.
+  This report is printed on standard output.
 }
 @item{
   @emph{Module Graph View} (defaults to @tt{tmp-contract-profile-module-graph.dot.pdf}):
@@ -88,7 +86,6 @@ output.
 
 @defproc[(contract-profile-thunk
           [thunk (-> any)]
-          [#:cost-breakdown-file cost-breakdown-file (or/c path-string 'stdout #f) #f]
           [#:module-graph-file module-graph-file (or/c path-string #f) #f]
           [#:boundary-view-file boundary-view-file (or/c path-string #f) #f]
           [#:boundary-view-key-file boundary-view-key-file (or/c path-string #f) #f]) any]{
@@ -104,8 +101,7 @@ output.
               ([n (in-list numbers)])
       (+ total n)))
 
-  (contract-profile #:cost-breakdown-file 'stdout
-                    #:module-graph-file #f
+  (contract-profile #:module-graph-file #f
                     #:boundary-view-file #f
                     #:boundary-view-key-file #f
                     (sum* (range (expt 10 6))))
@@ -128,8 +124,7 @@ samples a @racket[(listof integer?)] contract than the underlying
               ([numbers (in-vector vec-of-numbers)])
       (+ total (sum* numbers))))
 
-  (contract-profile #:cost-breakdown-file 'stdout
-                    #:module-graph-file #f
+  (contract-profile #:module-graph-file #f
                     #:boundary-view-file #f
                     #:boundary-view-key-file #f
                     (vector-max* (make-vector 10 (range (expt 10 6)))))

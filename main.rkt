@@ -52,14 +52,11 @@
 (define (analyze-contract-samples
          contract-samples
          samples*
-         #:cost-breakdown-file [cost-breakdown-file not-there]
          #:module-graph-file [module-graph-file not-there]
          #:boundary-view-file [boundary-view-file not-there]
          #:boundary-view-key-file [boundary-view-key-file not-there])
   (define correlated (correlate-contract-samples contract-samples samples*))
-  (with-output-to-report-file
-   (decide-output-file cost-breakdown-file "cost-breakdown.txt")
-   (print-breakdown correlated))
+  (print-breakdown correlated)
   (module-graph-view correlated module-graph-file)
   (boundary-view correlated boundary-view-file boundary-view-key-file))
 
@@ -240,8 +237,6 @@
     [(_ (~or
          ;; these arguments are: (or/c filename 'stdout #f) ; #f = disabled
          ;; absent means default filename
-         (~optional (~seq #:cost-breakdown-file cost-breakdown-file:expr)
-                    #:defaults ([cost-breakdown-file not-there/syntax]))
          (~optional (~seq #:module-graph-file module-graph-file:expr)
                     #:defaults ([module-graph-file not-there/syntax]))
          (~optional (~seq #:boundary-view-file boundary-view-file:expr)
@@ -262,9 +257,6 @@
              (analyze-contract-samples
               contract-samples
               samples
-              #,@(if (not-there/syntax? #'cost-breakdown-file)
-                     '()
-                     #'(#:cost-breakdown-file cost-breakdown-file))
               #,@(if (not-there/syntax? #'module-graph-file)
                      '()
                      #'(#:module-graph-file module-graph-file))
@@ -277,12 +269,10 @@
 
 ;; TODO this should have keyword args too. restructure the whole entry point
 (define (contract-profile-thunk f
-                                #:cost-breakdown-file [cost-breakdown-file #f]
                                 #:module-graph-file [module-graph-file #f]
                                 #:boundary-view-file [boundary-view-file #f]
                                 #:boundary-view-key-file [boundary-view-key-file #f])
   (contract-profile/user
-    #:cost-breakdown-file cost-breakdown-file
     #:module-graph-file module-graph-file
     #:boundary-view-file boundary-view-file
     #:boundary-view-key-file boundary-view-key-file
