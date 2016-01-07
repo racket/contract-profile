@@ -86,20 +86,16 @@
   (define (print-contract/loc c)
     (printf "~a @ ~a\n" (blame-contract c) (srcloc->string (shorten-source c))))
 
-  (displayln "\nBY CONTRACT\n")
   (define samples-by-contract
     (sort (group-by (lambda (x) (blame-contract (car x)))
                     live-contract-samples)
           > #:key length #:cache-keys? #t))
-  (for ([c (in-list samples-by-contract)])
-    (define representative (caar c))
-    (print-contract/loc representative)
-    (printf "  ~a ms\n\n" (~r (samples-time c) #:precision 2)))
 
-  (displayln "\nBY CALLEE\n")
+  (displayln "\nBY CONTRACTED VALUE\n")
   (for ([g (in-list samples-by-contract)])
     (define representative (caar g))
     (print-contract/loc representative)
+    (printf "  ~a ms\n\n" (~r (samples-time g) #:precision 2))
     (for ([x (sort
               (group-by (lambda (x)
                           (blame-value (car x))) ; callee source, maybe
