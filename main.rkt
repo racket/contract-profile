@@ -68,7 +68,7 @@
 ;; Break down contract checking time by contract, then by callee and by chain
 ;; of callers.
 
-(define (print-breakdown correlated)
+(define (print-breakdown correlated [show-by-caller? #f])
   (match-define (contract-profile
                  total-time live-contract-samples all-blames regular-profile)
     correlated)
@@ -106,21 +106,21 @@
               (~r (samples-time x) #:precision 2)))
     (newline))
 
-  (define samples-by-contract-by-caller
-    (for/list ([g (in-list samples-by-contract)])
-      (sort (group-by cddr ; pruned stack trace
-                      (map sample-prune-stack-trace g))
-            > #:key length)))
-
-  (displayln "\nBY CALLER\n")
-  (for* ([g samples-by-contract-by-caller]
-         [c g])
-    (define representative (car c))
-    (print-contract/loc (car representative))
-    (for ([frame (in-list (cddr representative))])
-      (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
-    (printf "  ~a ms\n" (~r (samples-time c) #:precision 2))
-    (newline)))
+  (when show-by-caller?
+    (define samples-by-contract-by-caller
+      (for/list ([g (in-list samples-by-contract)])
+        (sort (group-by cddr ; pruned stack trace
+                        (map sample-prune-stack-trace g))
+              > #:key length)))
+    (displayln "\nBY CALLER\n")
+    (for* ([g samples-by-contract-by-caller]
+           [c g])
+      (define representative (car c))
+      (print-contract/loc (car representative))
+      (for ([frame (in-list (cddr representative))])
+        (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
+      (printf "  ~a ms\n" (~r (samples-time c) #:precision 2))
+      (newline))))
 
 ;; Unrolls the stack until it hits a function on the negative side of the
 ;; contract boundary (based on module location info).
