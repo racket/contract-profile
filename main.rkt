@@ -91,7 +91,6 @@
                     live-contract-samples)
           > #:key length #:cache-keys? #t))
 
-  (displayln "\nBY CONTRACTED VALUE\n")
   (for ([g (in-list samples-by-contract)])
     (define representative (caar g))
     (print-contract/loc representative)
