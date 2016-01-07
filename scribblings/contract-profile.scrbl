@@ -61,6 +61,9 @@ arguments which specify their destination files. An argument of @racket[#f]
 
   These graphs are rendered using Graphviz, and are only available if the
   contract profiler can locate a Graphviz install.
+
+  When using @exec{raco contract-profile}, controlled using the
+  @exec{--module-graph-file} flag.
 }
 @item{
   @emph{Boundary View}:
@@ -78,7 +81,6 @@ arguments which specify their destination files. An argument of @racket[#f]
   shown as gray ellipsoid nodes. @; TODO this explanation is not great
   Nodes are clustered by module. @; TODO explain more
 
-
   Each node reports its (non-contract-related) self time. In addition,
   contracted function nodes list the contract boundaries the function
   participates in, as well as the cost of checking the contracts associated
@@ -88,6 +90,9 @@ arguments which specify their destination files. An argument of @racket[#f]
 
   These graphs are rendered using Graphviz, and are only available if the
   contract profiler can locate a Graphviz install.
+
+  When using @exec{raco contract-profile}, controlled using the
+  @exec{--boundary-view-file} and @exec{--boundary-view-key-file} flags.
 }
 ]
 
