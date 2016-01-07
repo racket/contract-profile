@@ -11,3 +11,9 @@
 (define pkg-desc "Profiling tool for contracts")
 
 (define pkg-authors '(stamourv))
+
+(define raco-commands
+  '(("contract-profile"
+     contract-profile/raco
+     "profile overhead from contracts"
+     #f)))

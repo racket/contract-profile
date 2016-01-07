@@ -12,9 +12,25 @@
 
 @title[#:tag "contract-profiling"]{Contract Profiling}
 
+This package provides support for profiling the execution of
+@secref["contracts" #:doc '(lib "scribblings/guide/guide.scrbl")].
+
+Contracts are a great mechanism for enforcing invariants and producing good
+error messages, but they introduce run-time checking which may impose
+significant posts. The goal of the contract profiler is to identify where these
+costs are, and provide information to help control them.
+
+The simplest way to use this tool is to use the @exec{raco contract-profile}
+command, which takes a file name as argument, and runs the contract profiler on
+the @racket[main] submodule of that file (if it exists), or on the module
+itself (if there is no @racket[main] submodule).
+The tool's output is decribed below.
+
 @defmodule[contract-profile]
 
-This module provides experimental support for contract profiling.
+In addition to using @exec{raco contract-profile}, it is possible to invoke the
+contract profiler programmatically. This allows for profiling particular
+portions of programs, and for controlling the output.
 
 @defform[(contract-profile option ... body ...)
          #:grammar [(option (code:line #:module-graph-file module-graph-file)
