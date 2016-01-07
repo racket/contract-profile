@@ -84,7 +84,7 @@
   (define shorten-source
     (make-srcloc-shortener all-blames blame-source))
   (define (print-contract/loc c)
-    (printf "~a @ ~a\n" (blame-contract c) (shorten-source c)))
+    (printf "~a @ ~a\n" (blame-contract c) (srcloc->string (shorten-source c))))
 
   (displayln "\nBY CONTRACT\n")
   (define samples-by-contract
@@ -122,7 +122,7 @@
     (define representative (car c))
     (print-contract/loc (car representative))
     (for ([frame (in-list (cddr representative))])
-      (printf "  ~a @ ~a\n" (car frame) (cdr frame)))
+      (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
     (printf "  ~a ms\n" (~r (samples-time c) #:precision 2))
     (newline)))
 
