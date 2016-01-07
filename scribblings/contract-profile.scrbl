@@ -20,11 +20,13 @@ error messages, but they introduce run-time checking which may impose
 significant posts. The goal of the contract profiler is to identify where these
 costs are, and provide information to help control them.
 
+@index["raco contract-profile"]{
 The simplest way to use this tool is to use the @exec{raco contract-profile}
 command, which takes a file name as argument, and runs the contract profiler on
 the @racket[main] submodule of that file (if it exists), or on the module
 itself (if there is no @racket[main] submodule).
 The tool's output is decribed below.
+}
 
 @defmodule[contract-profile]
 
