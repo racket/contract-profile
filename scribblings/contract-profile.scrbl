@@ -41,8 +41,9 @@ Produces a report of the performance costs related to contract checking in
 @racket[body] on standard output.
 
 Specifically, displays the proportion of @racket[body]'s running time that was
-spent checking contracts and breaks that time down by contract, then by
-contracted function and finally by caller for each contracted function.
+spent checking contracts and breaks that time down by contract, and then breaks
+down the cost of each contract between the different contracted values that use
+it.
 
 Additional visualizations are available on-demand, controlled by keyword
 arguments which specify their destination files. An argument of @racket[#f]

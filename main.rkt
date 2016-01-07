@@ -83,26 +83,28 @@
 
   (define shorten-source
     (make-srcloc-shortener all-blames blame-source))
-  (define (print-contract/loc c)
-    (printf "~a @ ~a\n" (blame-contract c) (srcloc->string (shorten-source c))))
+  (define (format-contract/loc c)
+    (format "~a @ ~a" (blame-contract c) (srcloc->string (shorten-source c))))
+  (define (format-samples-time s)
+    (format "~a ms" (~r (samples-time s) #:precision 2)))
 
   (define samples-by-contract
     (sort (group-by (lambda (x) (blame-contract (car x)))
                     live-contract-samples)
           > #:key length #:cache-keys? #t))
 
+  (define location-width 65)
   (for ([g (in-list samples-by-contract)])
     (define representative (caar g))
-    (print-contract/loc representative)
-    (printf "  ~a ms\n\n" (~r (samples-time g) #:precision 2))
+    (display (~a (format-contract/loc representative) #:width location-width))
+    (displayln (format-samples-time g))
     (for ([x (sort
               (group-by (lambda (x)
                           (blame-value (car x))) ; callee source, maybe
                         g)
               > #:key length)])
-      (printf "  ~a\n  ~a ms\n"
-              (blame-value (caar x))
-              (~r (samples-time x) #:precision 2)))
+      (display (~a "    " (blame-value (caar x)) #:width location-width))
+      (displayln (format-samples-time x)))
     (newline))
 
   (when show-by-caller?
@@ -115,10 +117,10 @@
     (for* ([g samples-by-contract-by-caller]
            [c g])
       (define representative (car c))
-      (print-contract/loc (car representative))
+      (displayln (format-contract/loc (car representative)))
       (for ([frame (in-list (cddr representative))])
         (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
-      (printf "  ~a ms\n" (~r (samples-time c) #:precision 2))
+      (displayln (format-samples-time c))
       (newline))))
 
 ;; Unrolls the stack until it hits a function on the negative side of the
