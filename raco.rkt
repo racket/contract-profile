@@ -31,3 +31,5 @@
  #:boundary-view-file boundary-view-file
  #:boundary-view-key-file boundary-view-key-file
  (dynamic-require (module-to-profile file) #f))
+
+(module test racket/base) ; don't run for testing
