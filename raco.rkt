@@ -26,6 +26,10 @@
                 #:args (filename)
                 filename))
 
+(collect-garbage)
+(collect-garbage)
+(collect-garbage)
+
 (contract-profile
  #:module-graph-file module-graph-file
  #:boundary-view-file boundary-view-file
