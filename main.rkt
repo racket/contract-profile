@@ -83,8 +83,11 @@
 
   (define shorten-source
     (make-srcloc-shortener all-blames blame-source))
-  (define (format-contract/loc c)
-    (format "~a @ ~a" (blame-contract c) (srcloc->string (shorten-source c))))
+  (define (format-contract/loc c s)
+    (string-append
+     (~a (blame-contract c) #:width location-width)
+     (~a (format-samples-time s) "\n")
+     (~a (srcloc->string (shorten-source c)) #:width location-width)))
   (define (format-samples-time s)
     (format "~a ms" (~r (samples-time s) #:precision 2)))
 
@@ -96,8 +99,7 @@
   (define location-width 65)
   (for ([g (in-list samples-by-contract)])
     (define representative (caar g))
-    (display (~a (format-contract/loc representative) #:width location-width))
-    (displayln (format-samples-time g))
+    (displayln (format-contract/loc representative g))
     (for ([x (sort
               (group-by (lambda (x)
                           (blame-value (car x))) ; callee source, maybe
@@ -117,10 +119,9 @@
     (for* ([g samples-by-contract-by-caller]
            [c g])
       (define representative (car c))
-      (displayln (format-contract/loc (car representative)))
+      (displayln (format-contract/loc (car representative) c))
       (for ([frame (in-list (cddr representative))])
         (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
-      (displayln (format-samples-time c))
       (newline))))
 
 ;; Unrolls the stack until it hits a function on the negative side of the
