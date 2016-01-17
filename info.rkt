@@ -2,7 +2,7 @@
 
 (define collection "contract-profile")
 (define deps '("base"
-               "profile-lib"))
+               ("profile-lib" #:version "1.1")))
 (define build-deps '("racket-doc"
                      "scribble-lib"
                      "rackunit-lib"
