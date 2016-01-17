@@ -2,11 +2,11 @@
 
 (define collection "contract-profile")
 (define deps '("base"
+               "math-lib"
                ("profile-lib" #:version "1.1")))
 (define build-deps '("racket-doc"
                      "scribble-lib"
-                     "rackunit-lib"
-                     "math-lib"))
+                     "rackunit-lib"))
 
 (define pkg-desc "Profiling tool for contracts")
 
