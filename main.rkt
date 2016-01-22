@@ -20,8 +20,10 @@
       ;; In some cases, blame information is missing a party, in which.
       ;; case the contract system provides a pair of the incomplete blame
       ;; and the missing party. We combine the two here.
-      (if (pair? c-s)
-          (blame-add-missing-party (car c-s) (cdr c-s))
+      (if (and (pair? c-s))
+          (if (blame-missing-party? (car c-s))
+              (blame-add-missing-party (car c-s) (cdr c-s))
+              (car c-s))
           c-s)))
   ;; combine blame info and stack trace info. samples should line up
   (define aug-contract-samples
