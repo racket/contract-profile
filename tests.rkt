@@ -46,4 +46,82 @@
                       (build-path "d.rkt")
                       (list (build-path "e.rkt") 'f)
                       '(something else)))
+
+  ;; test that instrumentation for TR contract combinators works
+  ;; (tests for instrumentation of other contracts is in the contract tests)
+  (let ([res
+         (with-output-to-string
+           (lambda ()
+             (parameterize ([current-namespace (make-base-namespace)])
+               (eval '(module server1 typed/racket
+                        (provide v)
+                        (: v Any)
+                        (define v (vector 0))))
+               (eval '(require 'server1))
+               (eval '(require contract-profile))
+               (eval '(contract-profile
+                       (for ([i (in-range 10000000)])
+                         (vector-ref v 0))))
+               )))])
+    (check-regexp-match #rx"Any" res))
+
+  (let ([res
+         (with-output-to-string
+           (lambda ()
+             (parameterize ([current-namespace (make-base-namespace)])
+               (eval '(module u racket
+                        (define (mixin cls)
+                          (class cls
+                            (super-new)
+                            (define/public (n x) (add1 x))))
+                        (provide mixin)))
+               (eval '(module t typed/racket
+                        ;; expects a mixin that adds n
+                        (require/typed
+                         'u
+                         [mixin
+                             (All (r #:row)
+                                  (-> (Class #:row-var r)
+                                      (Class #:row-var r
+                                             [n (-> Integer Integer)])))])
+                        (define c%
+                          (mixin (class object%
+                                   (super-new)
+                                   (define/public (m x) x))))
+                        (require/typed
+                         contract-profile
+                         [contract-profile-thunk ((-> Any) -> Any)])
+                        (define x (new c%))
+                        (contract-profile-thunk
+                         (lambda ()
+                           (for ([i (in-range 1000000)]) (send x n 1))))))
+               (eval '(require 't))
+               )))])
+    (check-regexp-match #rx"mixin" res))
+
+  (let ([res
+         (with-output-to-string
+           (lambda ()
+             (parameterize ([current-namespace (make-base-namespace)])
+               (eval '(module a racket
+                        (provide c%)
+                        (define c%
+                          (class object%
+                            (super-new)
+                            (define/public (m x) (void))))))
+               (eval '(module b typed/racket
+                        (require/typed 'a
+                                       [c% (Class [m (-> Integer Void)])])
+                        (provide o)
+                        (: o (Object))
+                        (define o (new (class c%
+                                         (super-new)
+                                         (define/public (n) (void)))))))
+               (eval '(require 'b contract-profile racket/class))
+               (eval '(contract-profile
+                       (for ([i (in-range 3000000)])
+                         (send o m 1))))
+               )))])
+    (check-regexp-match #rx"c%" res))
+
   )
