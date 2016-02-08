@@ -7,6 +7,8 @@
          "boundary-view.rkt" "module-graph-view.rkt"
          (for-syntax racket/base syntax/parse))
 
+(define limit-dots " ... ")
+
 ;; (listof (U blame? #f)) profile-samples -> contract-profile struct
 (define (correlate-contract-samples contract-samples* samples*)
   ;; car of samples* is total time, car of each sample is thread id
@@ -87,9 +89,12 @@
     (make-srcloc-shortener all-blames blame-source))
   (define (format-contract/loc c s)
     (string-append
-     (~a (blame-contract c) #:width location-width)
+     (~a (blame-contract c) #:limit-marker limit-dots #:width location-width)
      (~a (format-samples-time s) "\n")
-     (~a (srcloc->string (shorten-source c)) #:width location-width)))
+     (~a (srcloc->string (shorten-source c))
+         #:limit-marker limit-dots
+         #:limit-prefix? #t
+         #:width (- location-width 1))))
   (define (format-samples-time s)
     (format "~a ms" (~r (samples-time s) #:precision 2)))
 
@@ -107,7 +112,7 @@
                           (blame-value (car x))) ; callee source, maybe
                         g)
               > #:key length)])
-      (display (~a "    " (blame-value (caar x)) #:width location-width))
+      (display (~a "    " (blame-value (caar x)) #:limit-marker limit-dots #:width location-width))
       (displayln (format-samples-time x)))
     (newline))
 

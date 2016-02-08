@@ -139,7 +139,10 @@
     (for/hash ([p srcs]
                [e extracted])
       (values p (hash-ref shortened e (lambda () p)))))
-  (lambda (p)
+  (lambda (arg)
+    (define p (if (and (blame? arg) (blame-swapped? arg))
+                (blame-swap arg)
+                arg))
     (define target (hash-ref table p #f))
     (if target
         (struct-copy srcloc
