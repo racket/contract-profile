@@ -65,6 +65,14 @@
                )))])
     (check-regexp-match #rx"Any" res))
 
+  ;; Note: The next two tests originally featured single-argument methods.
+  ;; However, TR's contract generation improved (main by using simple-result->
+  ;; more often) which made the costs of the contracts not be directly
+  ;; observable anymore. Because of this, these tests now use methods that take
+  ;; more arguments.
+  ;; Note to the note: That's not to say that TR's optimization eliminated the
+  ;; cost of contracts altogether. The direct costs seem to be basically gone,
+  ;; but most of the opportunity costs seem to remain.
   (let ([res
          (with-output-to-string
            (lambda ()
@@ -73,7 +81,7 @@
                         (define (mixin cls)
                           (class cls
                             (super-new)
-                            (define/public (n x) (add1 x))))
+                            (define/public (n x a b c d) (add1 x))))
                         (provide mixin)))
                (eval '(module t typed/racket
                         ;; expects a mixin that adds n
@@ -83,7 +91,7 @@
                              (All (r #:row)
                                   (-> (Class #:row-var r)
                                       (Class #:row-var r
-                                             [n (-> Integer Integer)])))])
+                                             [n (-> Integer Integer Integer Integer Integer Integer)])))])
                         (define c%
                           (mixin (class object%
                                    (super-new)
@@ -94,7 +102,7 @@
                         (define x (new c%))
                         (contract-profile-thunk
                          (lambda ()
-                           (for ([i (in-range 1000000)]) (send x n 1))))))
+                           (for ([i (in-range 1000000)]) (send x n 1 2 3 4 5))))))
                (eval '(require 't))
                )))])
     (check-regexp-match #rx"mixin" res))
@@ -108,10 +116,10 @@
                         (define c%
                           (class object%
                             (super-new)
-                            (define/public (m x) (void))))))
+                            (define/public (m x a b c d) (void))))))
                (eval '(module b typed/racket
                         (require/typed 'a
-                                       [c% (Class [m (-> Integer Void)])])
+                                       [c% (Class [m (-> Integer Integer Integer Integer Integer Void)])])
                         (provide o)
                         (: o (Object))
                         (define o (new (class c%
@@ -120,7 +128,7 @@
                (eval '(require 'b contract-profile racket/class))
                (eval '(contract-profile
                        (for ([i (in-range 3000000)])
-                         (send o m 1))))
+                         (send o m 1 2 3 4 5))))
                )))])
     (check-regexp-match #rx"c%" res))
 
