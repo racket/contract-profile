@@ -1,7 +1,7 @@
 #lang info
 
 (define collection "contract-profile")
-(define deps '("base"
+(define deps '(("base" #:version "6.3")
                "math-lib"
                ("profile-lib" #:version "1.1")))
 (define build-deps '("racket-doc"
