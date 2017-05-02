@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require racket/list racket/match racket/format racket/set
+(require racket/list racket/match racket/format racket/set racket/promise
          racket/contract/combinator
          profile/sampler profile/utils profile/analyzer
          "utils.rkt"
@@ -47,7 +47,7 @@
                  (if (blame-swapped? b)
                      (blame-swap b) ; swap back
                      b))))
-  (define regular-profile (analyze-samples samples*))
+  (define regular-profile (delay (analyze-samples samples*)))
   ;; all blames must be complete, otherwise we get bogus profiles
   (for ([b (in-list all-blames)])
     (unless (not (blame-missing-party? b))

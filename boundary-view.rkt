@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/list racket/match racket/contract racket/string
-         racket/set racket/dict racket/format
+         racket/set racket/dict racket/format racket/promise
          profile/structs profile/utils
          "utils.rkt" "dot.rkt")
 
@@ -64,7 +64,7 @@
       ;; which won't be connected to the actual profile graph, but will show up
       ;; in the output. (See no-profile-nodes above.)
       (define contracted-function
-        (or (for/first ([n (in-list (profile-nodes regular-profile))]
+        (or (for/first ([n (in-list (profile-nodes (force regular-profile)))]
                         ;; Matching is overly permissive (relies only on
                         ;; function name). If two functions in the same module
                         ;; have the same name, results may be bogus.
