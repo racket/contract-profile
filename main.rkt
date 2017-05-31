@@ -9,7 +9,8 @@
 
 (define limit-dots " ... ")
 
-;; (listof (U blame? #f)) profile-samples -> contract-profile struct
+;; (listof (U blame? (cons blame? blame-party) #f)) profile-samples
+;;   -> contract-profile?
 (define (correlate-contract-samples contract-samples* samples*)
   ;; car of samples* is total time, car of each sample is thread id
   ;; for now, we just assume a single thread. fix this eventually.
