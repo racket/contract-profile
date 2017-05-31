@@ -26,8 +26,7 @@
 ;; node that originate from the contract's other party. Due to limitations in
 ;; the profiler (tail calls, mostly), the set of edges is an approximation
 ;; (both over- and under-).
-(struct boundary (contracted-node edges blame time)
-        #:transparent) ;; TODO for debugging
+(struct boundary (contracted-node edges blame time))
 
 ;; Rendering options.
 ;; For large programs (e.g. Acquire), enabling module clustering when showing
