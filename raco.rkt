@@ -11,6 +11,7 @@
 (define module-graph-view-file #f)
 (define boundary-view-file #f)
 (define boundary-view-key-file #f)
+(define report-space-efficient? #f)
 (define file
   (command-line #:program (short-program+command-name)
                 #:once-each
@@ -23,6 +24,9 @@
                 [("--boundary-view-key-file") file
                  "Output boundary view key to <file>"
                  (set! boundary-view-key-file file)]
+                [("--report-space-efficient")
+                 "Distinguish space-efficient contracts from non"
+                 (set! report-space-efficient? #t)]
                 #:args (filename)
                 filename))
 
@@ -34,6 +38,7 @@
  #:module-graph-view-file module-graph-view-file
  #:boundary-view-file boundary-view-file
  #:boundary-view-key-file boundary-view-key-file
+ #:report-space-efficient? report-space-efficient?
  (dynamic-require (module-to-profile file) #f))
 
 (module test racket/base) ; don't run for testing

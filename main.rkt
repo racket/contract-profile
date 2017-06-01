@@ -66,11 +66,12 @@
 (define (analyze-contract-samples
          contract-samples
          samples
+         #:report-space-efficient? [report-space-efficient? #f]
          #:module-graph-view-file  [module-graph-view-file  #f]
          #:boundary-view-file      [boundary-view-file      #f]
          #:boundary-view-key-file  [boundary-view-key-file  #f])
   (define correlated (correlate-contract-samples contract-samples samples))
-  (print-breakdown correlated)
+  (print-breakdown correlated #:report-space-efficient? report-space-efficient?)
   (when module-graph-view-file
     (module-graph-view correlated module-graph-view-file))
   (when boundary-view-file
@@ -81,18 +82,33 @@
 ;; Break down contract checking time by contract, then by callee and by chain
 ;; of callers.
 
-(define (print-breakdown correlated [show-by-caller? #f])
+(define (/. num den) (/ num (max den 1) 1.0))
+
+(define (print-breakdown correlated
+                         [show-by-caller? #f]
+                         #:report-space-efficient? [report-space-efficient? #f])
   (match-define (contract-profile
                  total-time live-contract-samples all-blames regular-profile)
     correlated)
 
   (define total-contract-time (samples-time live-contract-samples))
-  (define contract-ratio (/ total-contract-time (max total-time 1) 1.0))
+  (define contract-ratio (/. total-contract-time total-time))
   (printf "Running time is ~a% contracts\n"
           (~r (* 100 contract-ratio) #:precision 2))
   (printf "~a/~a ms\n\n"
           (~r total-contract-time #:precision 0)
           total-time)
+  (define (only-space-efficient samples)
+    (filter contract-sample-space-efficient? samples))
+  (define space-efficient-samples (only-space-efficient live-contract-samples))
+  (when report-space-efficient?
+    (define total-space-efficient-time (samples-time space-efficient-samples))
+    (define space-efficient-ratio
+      (/. total-space-efficient-time total-contract-time))
+    (printf "(of those, ~a% (~a/~a ms) are space-efficient)\n\n"
+            (~r (* 100 space-efficient-ratio) #:precision 2)
+            (~r total-space-efficient-time #:precision 0)
+            (~r total-contract-time #:precision 0)))
 
   (define shorten-source
     (make-srcloc-shortener all-blames blame-source))
@@ -105,7 +121,15 @@
          #:limit-prefix? #t
          #:width (- location-width 1))))
   (define (format-samples-time s)
-    (format "~a ms" (~r (samples-time s) #:precision 2)))
+    (define total-time (samples-time s))
+    (format "~a ms~a"
+            (~r total-time #:precision 2)
+            (if report-space-efficient?
+                (format " (~a% space-efficient)"
+                        (~r (* 100 (/. (samples-time (only-space-efficient s))
+                                       total-time))
+                            #:precision 2))
+                "")))
 
   (define samples-by-contract
     (sort (group-by (lambda (x) (blame-contract (contract-sample-blame x)))
@@ -178,7 +202,9 @@
          (~optional (~seq #:boundary-view-file boundary-view-file:expr)
                     #:defaults ([boundary-view-file #'#f]))
          (~optional (~seq #:boundary-view-key-file boundary-view-key-file:expr)
-                    #:defaults ([boundary-view-key-file #'#f])))
+                    #:defaults ([boundary-view-key-file #'#f]))
+         (~optional (~seq #:report-space-efficient? report-space-efficient?:expr)
+                    #:defaults ([report-space-efficient? #'#f])))
         ...
         body:expr ...)
      #`(let ([sampler (create-sampler
@@ -212,14 +238,17 @@
               samples
               #:module-graph-view-file module-graph-view-file
               #:boundary-view-file boundary-view-file
-              #:boundary-view-key-file boundary-view-key-file))))]))
+              #:boundary-view-key-file boundary-view-key-file
+              #:report-space-efficient? report-space-efficient?))))]))
 
 (define (contract-profile-thunk f
                                 #:module-graph-view-file [module-graph-view-file #f]
                                 #:boundary-view-file [boundary-view-file #f]
-                                #:boundary-view-key-file [boundary-view-key-file #f])
+                                #:boundary-view-key-file [boundary-view-key-file #f]
+                                #:report-space-efficient? [report-space-efficient? #f])
   (contract-profile/user
     #:module-graph-view-file module-graph-view-file
     #:boundary-view-file boundary-view-file
     #:boundary-view-key-file boundary-view-key-file
+    #:report-space-efficient? report-space-efficient?
     (f)))

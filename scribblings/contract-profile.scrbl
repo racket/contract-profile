@@ -37,7 +37,8 @@ portions of programs, and for controlling the output.
 @defform[(contract-profile option ... body ...)
          #:grammar [(option (code:line #:module-graph-view-file module-graph-view-file)
                             (code:line #:boundary-view-file boundary-view-file)
-                            (code:line #:boundary-view-key-file boundary-view-key-file))]]{
+                            (code:line #:boundary-view-key-file boundary-view-key-file)
+                            (code:line #:report-space-efficient? report-space-efficient?))]]{
 
 Produces a report of the performance costs related to contract checking in
 @racket[body] on standard output.
@@ -46,6 +47,10 @@ Specifically, displays the proportion of @racket[body]'s running time that was
 spent checking contracts and breaks that time down by contract, and then breaks
 down the cost of each contract between the different contracted values that use
 it.
+
+If @racket[report-space-efficient?] is non-false, space-efficient contracts
+are marked specially in the report. When using @exec{raco contract-profile},
+this is controlled using the @exec{--report-space-efficient} flag.
 
 Additional visualizations are available on-demand, controlled by keyword
 arguments which specify their destination files. An argument of @racket[#f]
@@ -105,7 +110,9 @@ arguments which specify their destination files. An argument of @racket[#f]
           [thunk (-> any)]
           [#:module-graph-view-file module-graph-view-file (or/c path-string #f) #f]
           [#:boundary-view-file boundary-view-file (or/c path-string #f) #f]
-          [#:boundary-view-key-file boundary-view-key-file (or/c path-string #f) #f]) any]{
+          [#:boundary-view-key-file boundary-view-key-file (or/c path-string #f) #f]
+          [#:report-space-efficient? report-space-efficient? any/c #f])
+          any]{
   Like @racket[contract-profile], but as a function which takes a thunk to
   profile as argument.
 }
