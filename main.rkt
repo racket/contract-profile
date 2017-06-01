@@ -11,49 +11,45 @@
 
 ;; (listof (U blame? (cons blame? blame-party) #f)) profile-samples
 ;;   -> contract-profile?
-(define (correlate-contract-samples contract-samples* samples*)
-  ;; car of samples* is total time, car of each sample is thread id
+(define (correlate-contract-samples contract-samples time+samples)
+  ;; car of time+samples is total time, car of each sample is thread id
   ;; for now, we just assume a single thread. fix this eventually.
-  (define total-time (car samples*))
+  (define total-time (car time+samples))
   ;; reverse is there to sort samples in forward time, which get-times
   ;; needs.
   (define samples
-    (for/list ([s (in-list (get-times (map cdr (reverse (cdr samples*)))))])
+    (for/list ([s (in-list (get-times (map cdr (reverse (cdr time+samples)))))])
       ;; don't want fractions for printing
       (cons (real->double-flonum (car s)) (cdr s))))
-  (define contract-samples
-    (for/list ([c-s (in-list contract-samples*)])
-      ;; In some cases, blame information is missing a party, in which.
-      ;; case the contract system provides a pair of the incomplete blame
-      ;; and the missing party. We combine the two here.
-      (if (and (pair? c-s))
-          (if (blame-missing-party? (car c-s))
-              (blame-add-missing-party (car c-s) (cdr c-s))
-              (car c-s))
-          c-s)))
   ;; combine blame info and stack trace info. samples should line up
-  (define aug-contract-samples
+  (define live-contract-samples
     ;; If the sampler was stopped after recording a contract sample, but
     ;; before recording the corresponding time sample, the two lists may
     ;; be of different lengths. That's ok, just drop the extra sample.
-    (for/list ([c-s (in-list contract-samples)]
-               [s   (in-list samples)])
-      (cons c-s s)))
-  (define live-contract-samples (filter car aug-contract-samples))
+    (for/list ([-blame (in-list contract-samples)]
+               [s      (in-list samples)]
+               #:when -blame)
+      ;; In some cases, blame information is missing a party, in which.
+      ;; case the contract system provides a pair of the incomplete blame
+      ;; and the missing party. We combine the two here.
+      (define blame
+        (if (pair? -blame)
+            (blame-add-missing-party (car -blame) (cdr -blame))
+            -blame))
+      (contract-sample blame s)))
   (define all-blames
-    (set->list (for/set ([b (in-list contract-samples)]
-                         #:when b)
+    (set->list (for/set ([c-s (in-list live-contract-samples)])
+                 (define b (contract-sample-blame c-s))
+                 ;; all blames must be complete, otherwise we get bogus profiles
+                 (when (blame-missing-party? b)
+                   (error (string-append "contract-profile: incomplete blame:\n"
+                                         (format-blame b))))
                  ;; An original blamed and its swapped version are the same
                  ;; for our purposes.
                  (if (blame-swapped? b)
                      (blame-swap b) ; swap back
                      b))))
-  (define regular-profile (delay (analyze-samples samples*)))
-  ;; all blames must be complete, otherwise we get bogus profiles
-  (for ([b (in-list all-blames)])
-    (unless (not (blame-missing-party? b))
-      (error (string-append "contract-profile: incomplete blame:\n"
-                            (format-blame b)))))
+  (define regular-profile (delay (analyze-samples time+samples)))
   (contract-profile
    total-time live-contract-samples all-blames regular-profile))
 
@@ -103,35 +99,40 @@
     (format "~a ms" (~r (samples-time s) #:precision 2)))
 
   (define samples-by-contract
-    (sort (group-by (lambda (x) (blame-contract (car x)))
+    (sort (group-by (lambda (x) (blame-contract (contract-sample-blame x)))
                     live-contract-samples)
           > #:key length #:cache-keys? #t))
 
   (define location-width 65)
   (for ([g (in-list samples-by-contract)])
-    (define representative (caar g))
+    (define representative (contract-sample-blame (car g)))
     (displayln (format-contract/loc representative g))
     (for ([x (sort
               (group-by (lambda (x)
-                          (blame-value (car x))) ; callee source, maybe
+                          ;; callee source, maybe
+                          (blame-value (contract-sample-blame x)))
                         g)
               > #:key length)])
-      (display (~a "    " (blame-value (caar x)) #:limit-marker limit-dots #:width location-width))
+      (display (~a "    " (blame-value (contract-sample-blame (car x)))
+                   #:limit-marker limit-dots #:width location-width))
       (displayln (format-samples-time x)))
     (newline))
 
   (when show-by-caller?
     (define samples-by-contract-by-caller
       (for/list ([g (in-list samples-by-contract)])
-        (sort (group-by cddr ; pruned stack trace
+        (sort (group-by (lambda (x)
+                          ;; pruned stack trace
+                          (cdr (contract-sample-profile-sample)))
                         (map sample-prune-stack-trace g))
               > #:key length)))
     (displayln "\nBY CALLER\n")
     (for* ([g samples-by-contract-by-caller]
            [c g])
       (define representative (car c))
-      (displayln (format-contract/loc (car representative) c))
-      (for ([frame (in-list (cddr representative))])
+      (displayln (format-contract/loc (contract-sample-blame representative) c))
+      (for ([frame (in-list
+                    (cdr (contract-sample-profile-sample representative)))])
         (printf "  ~a @ ~a\n" (car frame) (srcloc->string (cdr frame))))
       (newline))))
 

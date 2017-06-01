@@ -100,7 +100,7 @@
           e))
       (define time-spent ; TODO probably more efficient to group ahead of time
         (samples-time (for/list ([s (in-list live-contract-samples)]
-                                 #:when (equal? (car s) b))
+                                 #:when (equal? (contract-sample-blame s) b))
                         s)))
       (boundary contracted-function boundary-edges b time-spent)))
 
