@@ -35,7 +35,7 @@ contract profiler programmatically. This allows for profiling particular
 portions of programs, and for controlling the output.
 
 @defform[(contract-profile option ... body ...)
-         #:grammar [(option (code:line #:module-graph-file module-graph-file)
+         #:grammar [(option (code:line #:module-graph-view-file module-graph-view-file)
                             (code:line #:boundary-view-file boundary-view-file)
                             (code:line #:boundary-view-key-file boundary-view-key-file))]]{
 
@@ -66,7 +66,7 @@ arguments which specify their destination files. An argument of @racket[#f]
   contract profiler can locate a Graphviz install.
 
   When using @exec{raco contract-profile}, controlled using the
-  @exec{--module-graph-file} flag.
+  @exec{--module-graph-view-file} flag.
 }
 @item{
   @emph{Boundary View}:
@@ -103,7 +103,7 @@ arguments which specify their destination files. An argument of @racket[#f]
 
 @defproc[(contract-profile-thunk
           [thunk (-> any)]
-          [#:module-graph-file module-graph-file (or/c path-string #f) #f]
+          [#:module-graph-view-file module-graph-view-file (or/c path-string #f) #f]
           [#:boundary-view-file boundary-view-file (or/c path-string #f) #f]
           [#:boundary-view-key-file boundary-view-key-file (or/c path-string #f) #f]) any]{
   Like @racket[contract-profile], but as a function which takes a thunk to

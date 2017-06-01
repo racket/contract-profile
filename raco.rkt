@@ -8,15 +8,15 @@
 ;; raco contract-profile
 ;; profile the main submodule (if there is one), or the top-level module
 
-(define module-graph-file #f)
+(define module-graph-view-file #f)
 (define boundary-view-file #f)
 (define boundary-view-key-file #f)
 (define file
   (command-line #:program (short-program+command-name)
                 #:once-each
-                [("--module-graph-file") file
-                 "Output module view to <file>"
-                 (set! module-graph-file file)]
+                [("--module-graph-view-file") file
+                 "Output module graph view to <file>"
+                 (set! module-graph-view-file file)]
                 [("--boundary-view-file") file
                  "Output boundary view to <file>"
                  (set! boundary-view-file file)]
@@ -31,7 +31,7 @@
 (collect-garbage)
 
 (contract-profile
- #:module-graph-file module-graph-file
+ #:module-graph-view-file module-graph-view-file
  #:boundary-view-file boundary-view-file
  #:boundary-view-key-file boundary-view-key-file
  (dynamic-require (module-to-profile file) #f))

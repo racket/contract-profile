@@ -56,14 +56,14 @@
 
 (define (analyze-contract-samples
          contract-samples
-         samples*
-         #:module-graph-file [module-graph-file #f]
-         #:boundary-view-file [boundary-view-file #f]
-         #:boundary-view-key-file [boundary-view-key-file #f])
-  (define correlated (correlate-contract-samples contract-samples samples*))
+         samples
+         #:module-graph-view-file  [module-graph-view-file  #f]
+         #:boundary-view-file      [boundary-view-file      #f]
+         #:boundary-view-key-file  [boundary-view-key-file  #f])
+  (define correlated (correlate-contract-samples contract-samples samples))
   (print-breakdown correlated)
-  (when module-graph-file
-    (module-graph-view correlated module-graph-file))
+  (when module-graph-view-file
+    (module-graph-view correlated module-graph-view-file))
   (when boundary-view-file
     (boundary-view correlated boundary-view-file boundary-view-key-file)))
 
@@ -164,8 +164,8 @@
     [(_ (~or
          ;; these arguments are: (or/c filename 'stdout #f) ; #f = disabled
          ;; absent means default filename
-         (~optional (~seq #:module-graph-file module-graph-file:expr)
-                    #:defaults ([module-graph-file #'#f]))
+         (~optional (~seq #:module-graph-view-file module-graph-view-file:expr)
+                    #:defaults ([module-graph-view-file #'#f]))
          (~optional (~seq #:boundary-view-file boundary-view-file:expr)
                     #:defaults ([boundary-view-file #'#f]))
          (~optional (~seq #:boundary-view-key-file boundary-view-key-file:expr)
@@ -197,16 +197,16 @@
              (analyze-contract-samples
               contract-samples
               samples
-              #:module-graph-file module-graph-file
+              #:module-graph-view-file module-graph-view-file
               #:boundary-view-file boundary-view-file
               #:boundary-view-key-file boundary-view-key-file))))]))
 
 (define (contract-profile-thunk f
-                                #:module-graph-file [module-graph-file #f]
+                                #:module-graph-view-file [module-graph-view-file #f]
                                 #:boundary-view-file [boundary-view-file #f]
                                 #:boundary-view-key-file [boundary-view-key-file #f])
   (contract-profile/user
-    #:module-graph-file module-graph-file
+    #:module-graph-view-file module-graph-view-file
     #:boundary-view-file boundary-view-file
     #:boundary-view-key-file boundary-view-key-file
     (f)))
