@@ -178,6 +178,19 @@
              (define samples (sampler 'get-snapshots))
              (define contract-samples
                (for/list ([s (in-list (sampler 'get-custom-snapshots))])
+                 ;; TODO taking the car loses information. even without
+                 ;;   re-entrant contracts, I've seen samples that have a
+                 ;;   2-element list, e.g., in:
+                 ;; (require contract-profile)
+                 ;; (define v (contract (vectorof integer?)
+                 ;;                     (contract (vectorof integer?) (vector 1 2)
+                 ;;                               'pos 'neg)
+                 ;;                     'pos 'neg))
+                 ;; (define w (contract (vectorof integer?) (vector 1 2)
+                 ;;                     'pos 'neg))
+                 ;; (contract-profile (for/fold ([acc 0])
+                 ;;                             ([i (in-range 10000000)])
+                 ;;                     (+ acc (vector-ref v 0) (vector-ref w 0))))
                  (and (not (empty? s)) (vector-ref (car s) 0))))
              (analyze-contract-samples
               contract-samples
