@@ -118,25 +118,13 @@ arguments which specify their destination files. An argument of @racket[#f]
               ([n (in-list numbers)])
       (+ total n)))
 
-  (contract-profile (sum* (range (expt 10 6))))
-]
+  (contract-profile (sum* (range (expt 10 7))))
 
-The example shows that a large proportion of the call to @racket[sum*]
-with a list of 1 million integers is spent validating the input list.
-
-
-Note that the contract profiler is unlikely to detect fast-running contracts
-that trigger other, slower contract checks.
-In the following example, there is a higher chance that the profiler
-samples a @racket[(listof integer?)] contract than the underlying
-@racket[(vectorof list?)] contract.
-
-@examples[#:eval contract-profile-eval
   (define/contract (vector-max* vec-of-numbers)
     (-> (vectorof list?) integer?)
     (for/fold ([total 0])
               ([numbers (in-vector vec-of-numbers)])
       (+ total (sum* numbers))))
 
-  (contract-profile (vector-max* (make-vector 10 (range (expt 10 6)))))
+  (contract-profile (vector-max* (make-vector 10 (range (expt 10 7)))))
 ]
