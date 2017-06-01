@@ -6,6 +6,7 @@
 
 (struct contract-sample
   (blame
+   space-efficient?
    ;; from regular profiler
    profile-sample))
 

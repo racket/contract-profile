@@ -9,8 +9,16 @@
 
 (define limit-dots " ... ")
 
-;; (listof (U blame? (cons blame? blame-party) #f)) profile-samples
+;; using dynamic-require, to also work on versions that don't have it
+(define space-efficient-key
+  (dynamic-require '(lib "racket/contract/combinator")
+                   'space-efficient-contract-continuation-mark-key
+                   (lambda _ #f)))
+
+;; (listof (U (vector (U blame? (cons blame? blame-party)) boolean?) #f))
+;; profile-samples
 ;;   -> contract-profile?
+;; boolean denotes whether the sampled contract was space-efficient
 (define (correlate-contract-samples contract-samples time+samples)
   ;; car of time+samples is total time, car of each sample is thread id
   ;; for now, we just assume a single thread. fix this eventually.
@@ -26,9 +34,10 @@
     ;; If the sampler was stopped after recording a contract sample, but
     ;; before recording the corresponding time sample, the two lists may
     ;; be of different lengths. That's ok, just drop the extra sample.
-    (for/list ([-blame (in-list contract-samples)]
-               [s      (in-list samples)]
-               #:when -blame)
+    (for/list ([c-s (in-list contract-samples)]
+               [s   (in-list samples)]
+               #:when c-s)
+      (match-define `#(,-blame ,space-efficient?) c-s)
       ;; In some cases, blame information is missing a party, in which.
       ;; case the contract system provides a pair of the incomplete blame
       ;; and the missing party. We combine the two here.
@@ -36,7 +45,7 @@
         (if (pair? -blame)
             (blame-add-missing-party (car -blame) (cdr -blame))
             -blame))
-      (contract-sample blame s)))
+      (contract-sample blame space-efficient? s)))
   (define all-blames
     (set->list (for/set ([c-s (in-list live-contract-samples)])
                  (define b (contract-sample-blame c-s))
@@ -172,8 +181,12 @@
                     #:defaults ([boundary-view-key-file #'#f])))
         ...
         body:expr ...)
-     #`(let ([sampler (create-sampler (current-thread) 0.005 (current-custodian)
-                                      (list contract-continuation-mark-key))])
+     #`(let ([sampler (create-sampler
+                       (current-thread) 0.005 (current-custodian)
+                       (list contract-continuation-mark-key
+                             (or space-efficient-key
+                                 ;; won't be found, so we'll just get `#f`s
+                                 (gensym))))])
          (begin0 (begin body ...)
            (let ()
              (sampler 'stop)
@@ -193,7 +206,7 @@
                  ;; (contract-profile (for/fold ([acc 0])
                  ;;                             ([i (in-range 10000000)])
                  ;;                     (+ acc (vector-ref v 0) (vector-ref w 0))))
-                 (and (not (empty? s)) (vector-ref (car s) 0))))
+                 (and (not (empty? s)) (car s))))
              (analyze-contract-samples
               contract-samples
               samples

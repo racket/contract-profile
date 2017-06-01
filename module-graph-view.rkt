@@ -22,6 +22,7 @@
                [edge-samples (hash)])
         ([s (in-list live-contract-samples)])
       (match-define (contract-sample blame
+                                     space-efficient?
                                      (list sample-time stack-trace ...))
         s)
       (when (empty? stack-trace)
