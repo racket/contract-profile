@@ -17,7 +17,7 @@ This package provides support for profiling the execution of
 
 Contracts are a great mechanism for enforcing invariants and producing good
 error messages, but they introduce run-time checking which may impose
-significant posts. The goal of the contract profiler is to identify where these
+significant costs. The goal of the contract profiler is to identify where these
 costs are, and provide information to help control them.
 
 @index["raco contract-profile"]{
