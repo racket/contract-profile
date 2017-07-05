@@ -1,14 +1,17 @@
 #lang scribble/doc
 
 @(require scribble/manual
-          scribble/eval
+          scribble/example
+          racket/runtime-path
           (for-label racket/base racket/contract))
+@(define log-file "./eval-log.txt")
 @(define contract-profile-eval
-  (make-base-eval
-    '(begin (require contract-profile
-                     racket/contract
-                     (only-in racket/file file->string)
-                     racket/list))))
+   (make-log-based-eval log-file 'replay))
+@(contract-profile-eval
+  '(begin (require contract-profile
+                   racket/contract
+                   (only-in racket/file file->string)
+                   racket/list)))
 
 @title[#:tag "contract-profiling"]{Contract Profiling}
 
@@ -118,7 +121,7 @@ arguments which specify their destination files. An argument of @racket[#f]
 }
 
 
-@examples[#:eval contract-profile-eval
+@examples[#:eval contract-profile-eval #:preserve-source-locations
   (define/contract (sum* numbers)
     (-> (listof integer?) integer?)
     (for/fold ([total 0])
@@ -135,3 +138,5 @@ arguments which specify their destination files. An argument of @racket[#f]
 
   (contract-profile (vector-max* (make-vector 10 (range (expt 10 7)))))
 ]
+
+@(close-eval contract-profile-eval)
