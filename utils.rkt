@@ -31,12 +31,11 @@
 (define (format-blame b)
   (format (string-append "#<blame positive=~a\n"
                          "        negative=~a\n"
-                         "        contract=~a\n"
-                         "        value=~a\n"
+                         "        contract=~s\n"
+                         "        value=~s\n"
                          "        source=~a>\n")
           (blame-positive b) (blame-negative b)
-          (contract-name (blame-contract b))
-          (blame-value b) (blame-source b)))
+          (blame-contract b) (blame-value b) (blame-source b)))
 
 ;; (listof (U path-string? submodule-path #f)) -> same
 (define (shorten-paths ps*)
