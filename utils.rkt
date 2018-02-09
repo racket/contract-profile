@@ -35,7 +35,8 @@
                          "        value=~a\n"
                          "        source=~a>\n")
           (blame-positive b) (blame-negative b)
-          (blame-contract b) (blame-value b) (blame-source b)))
+          (contract-name (blame-contract b))
+          (blame-value b) (blame-source b)))
 
 ;; (listof (U path-string? submodule-path #f)) -> same
 (define (shorten-paths ps*)
