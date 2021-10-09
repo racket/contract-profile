@@ -17,3 +17,6 @@
      contract-profile/raco
      "profile overhead from contracts"
      #f)))
+
+(define license
+  '(Apache-2.0 OR MIT))
