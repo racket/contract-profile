@@ -28,6 +28,10 @@ The simplest way to use this tool is to use the @exec{raco contract-profile}
 command, which takes a file name as argument, and runs the contract profiler on
 the @racket[main] submodule of that file (if it exists), or on the module
 itself (if there is no @racket[main] submodule).
+If the @exec{--instantiation-only} flag is given, only the instantiation of the
+module is profiled, and the profile will not include the module's initial
+visitation
+(see @secref["mod-parse" #:doc '(lib "scribblings/reference/syntax-model.scrbl")]).
 The tool's output is decribed below.
 }
 

@@ -12,6 +12,8 @@
 (define boundary-view-file #f)
 (define boundary-view-key-file #f)
 (define report-space-efficient? #f)
+(define instantiation-only? #f)
+
 (define file
   (command-line #:program (short-program+command-name)
                 #:once-each
@@ -27,8 +29,13 @@
                 [("--report-space-efficient")
                  "Distinguish space-efficient contracts from non"
                  (set! report-space-efficient? #t)]
+                [("--instantiation-only")
+                 "Exclude setup of module imports from measurements"
+                 (set! instantiation-only? #t)]
                 #:args (filename)
                 filename))
+
+(define visited-module (and instantiation-only? (module-to-profile file)))
 
 (collect-garbage)
 (collect-garbage)
@@ -39,6 +46,6 @@
  #:boundary-view-file boundary-view-file
  #:boundary-view-key-file boundary-view-key-file
  #:report-space-efficient? report-space-efficient?
- (dynamic-require (module-to-profile file) #f))
+ (dynamic-require (or visited-module (module-to-profile file)) #f))
 
 (module test racket/base) ; don't run for testing
